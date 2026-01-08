@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import './App.css';
 
+// Get API URL from environment variable
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+
 function App() {
   const [description, setDescription] = useState('');
   const [name, setName] = useState('');
@@ -16,8 +19,6 @@ function App() {
   const [manualLng, setManualLng] = useState('');
   const [showVan, setShowVan] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  
-  // ADD: State to trigger reports refresh
   const [refreshReports, setRefreshReports] = useState(0);
 
   const handleGetLocation = () => {
@@ -70,7 +71,8 @@ function App() {
       if (finalLng != null) formData.append('longitude', finalLng);
       if (photo) formData.append('photo', photo);
 
-      const res = await fetch('http://localhost:5000/api/reports', {
+      // USE ENVIRONMENT VARIABLE
+      const res = await fetch(`${API_URL}/api/reports`, {
         method: 'POST',
         body: formData
       });
@@ -83,16 +85,13 @@ function App() {
       const data = await res.json();
       console.log('Created report:', data);
 
-      // Trigger animations
       setShowSuccess(true);
       setShowVan(true);
       setMessage('🎉 Report submitted! Rescue team is on the way!');
       
-      // Hide animations
       setTimeout(() => setShowVan(false), 3000);
       setTimeout(() => setShowSuccess(false), 4000);
 
-      // Reset form
       setDescription('');
       setName('');
       setPhone('');
@@ -102,7 +101,6 @@ function App() {
       setManualLat('');
       setManualLng('');
       
-      // CRITICAL: Trigger reports refresh
       setRefreshReports(prev => prev + 1);
       
     } catch (err) {
@@ -115,7 +113,6 @@ function App() {
 
   return (
     <div className="App">
-      {/* Moving Van Animation */}
       <AnimatePresence>
         {showVan && (
           <motion.div
@@ -130,7 +127,6 @@ function App() {
         )}
       </AnimatePresence>
 
-      {/* Success Confetti Animation */}
       <AnimatePresence>
         {showSuccess && (
           <motion.div
@@ -166,7 +162,6 @@ function App() {
         )}
       </AnimatePresence>
 
-      {/* Animated Header */}
       <motion.header 
         className="app-header"
         initial={{ y: -100, opacity: 0 }}
@@ -178,7 +173,6 @@ function App() {
       </motion.header>
 
       <div className="container">
-        {/* Animated Form Section */}
         <motion.section 
           className="form-section"
           initial={{ x: -100, opacity: 0 }}
@@ -203,10 +197,7 @@ function App() {
               />
             </motion.div>
 
-            <motion.div 
-              className="form-group"
-              whileHover={{ scale: 1.02 }}
-            >
+            <motion.div className="form-group" whileHover={{ scale: 1.02 }}>
               <label htmlFor="name">Your name *</label>
               <input
                 id="name"
@@ -218,10 +209,7 @@ function App() {
               />
             </motion.div>
 
-            <motion.div 
-              className="form-group"
-              whileHover={{ scale: 1.02 }}
-            >
+            <motion.div className="form-group" whileHover={{ scale: 1.02 }}>
               <label htmlFor="phone">Phone number *</label>
               <input
                 id="phone"
@@ -325,7 +313,6 @@ function App() {
           </form>
         </motion.section>
 
-        {/* Animated Reports Section - PASS refreshReports to trigger reload */}
         <motion.section 
           className="reports-section"
           initial={{ x: 100, opacity: 0 }}
@@ -340,17 +327,16 @@ function App() {
   );
 }
 
-// UPDATED: ReportsList component with auto-refresh
 function ReportsList({ refreshTrigger }) {
   const [reports, setReports] = useState([]);
   const [loadingReports, setLoadingReports] = useState(true);
   const [error, setError] = useState('');
 
-  // Load reports function
   const loadReports = async () => {
     setLoadingReports(true);
     try {
-      const res = await fetch('http://localhost:5000/api/reports?onlyOpen=true');
+      // USE ENVIRONMENT VARIABLE
+      const res = await fetch(`${API_URL}/api/reports?onlyOpen=true`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       
       const data = await res.json();
@@ -365,14 +351,14 @@ function ReportsList({ refreshTrigger }) {
     }
   };
 
-  // Load reports when component mounts OR when refreshTrigger changes
   useEffect(() => {
     loadReports();
-  }, [refreshTrigger]); // ← This makes it reload when form submits!
+  }, [refreshTrigger]);
 
   const updateStatus = async (id, newStatus) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/reports/${id}/status`, {
+      // USE ENVIRONMENT VARIABLE
+      const res = await fetch(`${API_URL}/api/reports/${id}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -380,7 +366,6 @@ function ReportsList({ refreshTrigger }) {
       
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       
-      // Update local state
       setReports((prev) =>
         prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r))
       );
@@ -439,7 +424,8 @@ function ReportsList({ refreshTrigger }) {
             {r.image_path && (
               <p>
                 <strong>📷 Photo:</strong>{' '}
-                <a href={`http://localhost:5000${r.image_path}`} target="_blank" rel="noreferrer">
+                {/* USE ENVIRONMENT VARIABLE */}
+                <a href={`${API_URL}${r.image_path}`} target="_blank" rel="noreferrer">
                   View image
                 </a>
               </p>
