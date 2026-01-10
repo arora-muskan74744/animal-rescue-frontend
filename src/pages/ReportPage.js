@@ -1,13 +1,13 @@
-import { useNavigate } from 'react-router-dom'; // Add this import
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import '../App.css';
 
-// Get API URL from environment variable
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 function ReportPage() {
   const navigate = useNavigate();
+
   const [description, setDescription] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
@@ -21,22 +21,28 @@ function ReportPage() {
   const [manualLng, setManualLng] = useState('');
   const [showVan, setShowVan] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [refreshReports, setRefreshReports] = useState(0);
+  const [showManualLocation, setShowManualLocation] = useState(false); // ← NEW STATE
 
   const handleGetLocation = () => {
     setLocationError('');
+    setShowManualLocation(false); // ← Hide manual location when trying auto
+
     if (!navigator.geolocation) {
       setLocationError('Geolocation is not supported by this browser.');
+      setShowManualLocation(true); // ← Show manual entry
       return;
     }
+
     navigator.geolocation.getCurrentPosition(
       (position) => {
         setLat(position.coords.latitude);
         setLng(position.coords.longitude);
+        setShowManualLocation(false); // ← Hide manual entry on success
       },
       (error) => {
         console.error('Geolocation error:', error);
-        setLocationError('Could not get location automatically. Please enter it manually.');
+        setLocationError('Could not get location automatically. Please enter manually below.');
+        setShowManualLocation(true); // ← Show manual entry on failure
       },
       {
         enableHighAccuracy: false,
@@ -73,7 +79,6 @@ function ReportPage() {
       if (finalLng != null) formData.append('longitude', finalLng);
       if (photo) formData.append('photo', photo);
 
-      // USE ENVIRONMENT VARIABLE
       const res = await fetch(`${API_URL}/api/reports`, {
         method: 'POST',
         body: formData
@@ -90,7 +95,7 @@ function ReportPage() {
       setShowSuccess(true);
       setShowVan(true);
       setMessage('🎉 Report submitted! Rescue team is on the way!');
-      
+
       setTimeout(() => setShowVan(false), 3000);
       setTimeout(() => setShowSuccess(false), 4000);
 
@@ -102,9 +107,8 @@ function ReportPage() {
       setLng(null);
       setManualLat('');
       setManualLng('');
-      
-      setRefreshReports(prev => prev + 1);
-      
+      setShowManualLocation(false);
+
     } catch (err) {
       console.error('Error submitting report:', err);
       setMessage(`❌ Failed to submit: ${err.message}`);
@@ -114,8 +118,7 @@ function ReportPage() {
   };
 
   return (
-    <div className="App">
-      {/* Add Back Button */}
+    <div className="report-page">
       <motion.button
         className="back-home-btn"
         onClick={() => navigate('/')}
@@ -124,6 +127,7 @@ function ReportPage() {
       >
         ← Back to Home
       </motion.button>
+
       <AnimatePresence>
         {showVan && (
           <motion.div
@@ -150,16 +154,16 @@ function ReportPage() {
               <motion.div
                 key={i}
                 className="confetti"
-                initial={{ 
-                  y: -20, 
+                initial={{
+                  y: -20,
                   x: Math.random() * window.innerWidth,
                   rotate: 0
                 }}
-                animate={{ 
+                animate={{
                   y: window.innerHeight + 100,
                   rotate: 360
                 }}
-                transition={{ 
+                transition={{
                   duration: 2 + Math.random() * 2,
                   ease: 'linear'
                 }}
@@ -173,28 +177,28 @@ function ReportPage() {
         )}
       </AnimatePresence>
 
-      <motion.header 
+      <motion.header
         className="app-header"
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.8, type: 'spring', bounce: 0.4 }}
       >
-        <h1>🐕 INJURED ANIMAL REPORT</h1>
+        <h1>🐕 Report Injured Animal</h1>
         <p>Report injured animals to local NGOs</p>
       </motion.header>
 
-      <div className="container">
-        <motion.section 
-          className="form-section"
-          initial={{ x: -100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
+      <div className="form-container-centered">
+        <motion.section
+          className="form-section-full"
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
           transition={{ duration: 0.6, delay: 0.2 }}
         >
           <h2>Submit a Report</h2>
           <form onSubmit={handleSubmit}>
-            <motion.div 
+            <motion.div
               className="form-group"
-              whileHover={{ scale: 1.02 }}
+              whileHover={{ scale: 1.01 }}
               transition={{ type: 'spring', stiffness: 300 }}
             >
               <label htmlFor="description">Description *</label>
@@ -203,34 +207,36 @@ function ReportPage() {
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 rows={4}
-                placeholder="Describe the injury and animal."
+                placeholder="Describe the injury and animal type (e.g., 'Injured dog with broken leg near Park Street')"
                 required
               />
             </motion.div>
 
-            <motion.div className="form-group" whileHover={{ scale: 1.02 }}>
-              <label htmlFor="name">Your name *</label>
-              <input
-                id="name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Your full name"
-                required
-              />
-            </motion.div>
+            <div className="form-row">
+              <motion.div className="form-group" whileHover={{ scale: 1.01 }}>
+                <label htmlFor="name">Your name *</label>
+                <input
+                  id="name"
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Your full name"
+                  required
+                />
+              </motion.div>
 
-            <motion.div className="form-group" whileHover={{ scale: 1.02 }}>
-              <label htmlFor="phone">Phone number *</label>
-              <input
-                id="phone"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="9876543210"
-                required
-              />
-            </motion.div>
+              <motion.div className="form-group" whileHover={{ scale: 1.01 }}>
+                <label htmlFor="phone">Phone number *</label>
+                <input
+                  id="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="9876543210"
+                  required
+                />
+              </motion.div>
+            </div>
 
             <div className="form-group">
               <label htmlFor="photo">Upload photo of animal (optional)</label>
@@ -248,58 +254,76 @@ function ReportPage() {
                 type="button"
                 onClick={handleGetLocation}
                 className="location-btn"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
                 📍 Use my current location
               </motion.button>
 
               <AnimatePresence>
                 {lat != null && lng != null && (
-                  <motion.div 
+                  <motion.div
                     className="location-display"
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
                   >
-                    ✅ Captured: {lat.toFixed(5)}, {lng.toFixed(5)}
+                    ✅ Location captured: {lat.toFixed(5)}, {lng.toFixed(5)}
                   </motion.div>
                 )}
               </AnimatePresence>
 
               <AnimatePresence>
                 {locationError && (
-                  <motion.div 
+                  <motion.div
                     className="error-message"
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0 }}
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
                   >
                     {locationError}
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <div className="manual-location">
-                <p>If automatic location fails, enter coordinates manually:</p>
-                <input
-                  type="text"
-                  placeholder="Latitude, e.g. 29.43055"
-                  value={manualLat}
-                  onChange={(e) => setManualLat(e.target.value)}
-                />
-                <input
-                  type="text"
-                  placeholder="Longitude, e.g. 74.92088"
-                  value={manualLng}
-                  onChange={(e) => setManualLng(e.target.value)}
-                />
-              </div>
+              {/* Manual Location - Hidden by default */}
+              <AnimatePresence>
+                {showManualLocation && (
+                  <motion.div
+                    className="manual-location"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <p style={{ color: '#ff6b6b', fontWeight: 600, marginBottom: 10 }}>
+                      📍 Enter location manually:
+                    </p>
+                    <div className="manual-inputs">
+                      <input
+                        type="text"
+                        placeholder="Latitude (e.g., 29.43055)"
+                        value={manualLat}
+                        onChange={(e) => setManualLat(e.target.value)}
+                      />
+                      <input
+                        type="text"
+                        placeholder="Longitude (e.g., 74.92088)"
+                        value={manualLng}
+                        onChange={(e) => setManualLng(e.target.value)}
+                      />
+                    </div>
+                    <p style={{ fontSize: '0.85rem', color: '#666', marginTop: 8 }}>
+                      💡 Tip: You can find coordinates by right-clicking on Google Maps
+                    </p>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             <AnimatePresence>
               {message && (
-                <motion.div 
+                <motion.div
                   className={message.includes('Failed') || message.includes('❌') ? 'error-message' : 'success-message'}
                   initial={{ opacity: 0, y: -20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -310,199 +334,20 @@ function ReportPage() {
               )}
             </AnimatePresence>
 
-            <motion.button 
-              type="submit" 
-              className="submit-btn" 
+            <motion.button
+              type="submit"
+              className="submit-btn"
               disabled={loading}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: loading ? 1 : 1.03 }}
+              whileTap={{ scale: loading ? 1 : 0.97 }}
               animate={loading ? { scale: [1, 1.05, 1] } : {}}
               transition={{ repeat: loading ? Infinity : 0, duration: 0.8 }}
             >
-              {loading ? '📡 Submitting...' : '✉️ Submit report'}
+              {loading ? '📡 Submitting...' : '✉️ Submit Report'}
             </motion.button>
           </form>
         </motion.section>
-
-        <motion.section 
-          className="reports-section"
-          initial={{ x: 100, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <h2>Recent NGO Reports</h2>
-          <ReportsList key={refreshReports} refreshTrigger={refreshReports} />
-        </motion.section>
       </div>
-    </div>
-  );
-}
-
-function ReportsList({ refreshTrigger }) {
-  const navigate = useNavigate();
-  const [reports, setReports] = useState([]);
-  const [loadingReports, setLoadingReports] = useState(true);
-  const [error, setError] = useState('');
-
-  const loadReports = async () => {
-    setLoadingReports(true);
-    try {
-      // USE ENVIRONMENT VARIABLE
-      const res = await fetch(`${API_URL}/api/reports?onlyOpen=true`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      
-      const data = await res.json();
-      console.log('Loaded reports:', data);
-      setReports(Array.isArray(data) ? data : []);
-      setError('');
-    } catch (err) {
-      console.error('Error loading reports:', err);
-      setError('Failed to load reports.');
-    } finally {
-      setLoadingReports(false);
-    }
-  };
-
-  useEffect(() => {
-    loadReports();
-  }, [refreshTrigger]);
-
-  const updateStatus = async (id, newStatus) => {
-    try {
-      // USE ENVIRONMENT VARIABLE
-      const res = await fetch(`${API_URL}/api/reports/${id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      });
-      
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      
-      setReports((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r))
-      );
-      
-      console.log(`Updated report ${id} to ${newStatus}`);
-    } catch (err) {
-      console.error('Failed to update status:', err);
-      alert('Failed to update status');
-    }
-  };
-
-  if (loadingReports) {
-    return (
-      <div style={{ textAlign: 'center', padding: '40px' }}>
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-          style={{ fontSize: '3rem' }}
-        >
-          🔄
-        </motion.div>
-        <p>Loading reports...</p>
-      </div>
-    );
-  }
-  
-  if (error) return <p className="error-message">{error}</p>;
-  
-  if (reports.length === 0) {
-    return (
-      <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
-        <p style={{ fontSize: '3rem', marginBottom: '10px' }}>📭</p>
-        <p>No reports yet. Be the first to report!</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="reports-list">
-      <AnimatePresence>
-        {reports.map((r, index) => (
-          <motion.div 
-            key={r.id} 
-            className="report-card"
-            initial={{ opacity: 0, y: 50 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, x: -100 }}
-            transition={{ delay: index * 0.1 }}
-            whileHover={{ scale: 1.03, boxShadow: '0 15px 40px rgba(0,0,0,0.3)' }}
-          >
-            <h3>🆔 Report #{r.id}</h3>
-            <p><strong>⏰ Time:</strong> {new Date(r.created_at).toLocaleString()}</p>
-            <p><strong>📝 Description:</strong> {r.description}</p>
-            <p><strong>👤 Reporter:</strong> {r.reporter_name} ({r.reporter_phone})</p>
-            
-            {r.image_path && (
-              <p>
-                <strong>📷 Photo:</strong>{' '}
-                {/* USE ENVIRONMENT VARIABLE */}
-                <a href={`${API_URL}${r.image_path}`} target="_blank" rel="noreferrer">
-                  View image
-                </a>
-              </p>
-            )}
-            
-            {r.latitude && r.longitude && (
-              <p>
-                <strong>📍 Location:</strong>{' '}
-                <a
-                  href={`https://www.google.com/maps/search/?api=1&query=${r.latitude},${r.longitude}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Open in Google Maps
-                </a>
-              </p>
-            )}
-            
-            <p>
-              <strong>📊 Status:</strong>{' '}
-              <span className={`status-${r.status.toLowerCase()}`}>
-                {r.status}
-              </span>
-            </p>
-
-            <div className="action-buttons">
-              {r.status === 'PENDING' && (
-                <>
-                  <motion.button 
-                    onClick={() => updateStatus(r.id, 'ON_THE_WAY')} 
-                    className="btn-secondary"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    🚗 On the way
-                  </motion.button>
-                  <motion.button 
-                    onClick={() => updateStatus(r.id, 'RESOLVED')} 
-                    className="btn-success"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    ✅ Resolved
-                  </motion.button>
-                </>
-              )}
-
-              {r.status === 'ON_THE_WAY' && (
-                <motion.button 
-                  onClick={() => updateStatus(r.id, 'RESOLVED')} 
-                  className="btn-success"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  ✅ Mark Resolved
-                </motion.button>
-              )}
-
-              {r.status === 'RESOLVED' && (
-                <span className="completed-badge">✔️ Completed</span>
-              )}
-            </div>
-          </motion.div>
-        ))}
-      </AnimatePresence>
     </div>
   );
 }

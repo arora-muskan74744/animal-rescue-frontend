@@ -1,0 +1,206 @@
+.reports-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding: 20px;
+}
+
+.reports-header {
+  text-align: center;
+  color: white;
+  margin: 80px 0 40px 0;
+}
+
+.reports-header h1 {
+  font-size: 3.5rem;
+  margin-bottom: 15px;
+  text-shadow: 3px 3px 6px rgba(0,0,0,0.3);
+}
+
+.reports-header p {
+  font-size: 1.3rem;
+  opacity: 0.95;
+}
+
+.reports-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.reports-controls {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-buttons button {
+  padding: 12px 24px;
+  border: 2px solid #667eea;
+  background: white;
+  color: #667eea;
+  border-radius: 25px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-buttons button:hover {
+  background: #f0f0f0;
+}
+
+.filter-buttons button.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-color: transparent;
+}
+
+.new-report-btn {
+  padding: 12px 30px;
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 1.1rem;
+  box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+}
+
+.reports-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 25px;
+}
+
+.report-card {
+  background: white;
+  padding: 25px;
+  border-radius: 15px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.report-id {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.report-card p {
+  margin-bottom: 10px;
+  color: #333;
+  line-height: 1.6;
+}
+
+.report-card strong {
+  color: #555;
+}
+
+.report-card a {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.report-card a:hover {
+  text-decoration: underline;
+}
+
+.status-badge {
+  margin: 15px 0;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+  flex-wrap: wrap;
+}
+
+.action-buttons button {
+  flex: 1;
+  min-width: 120px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary {
+  background: #007bff;
+  color: white;
+}
+
+.btn-success {
+  background: #28a745;
+  color: white;
+}
+
+.completed-badge {
+  background: #28a745;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  font-weight: 700;
+  display: block;
+  text-align: center;
+}
+
+.loading-state,
+.empty-state,
+.error-state {
+  text-align: center;
+  padding: 100px 20px;
+  background: white;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.empty-state button {
+  margin-top: 20px;
+  padding: 15px 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 25px;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+  .reports-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .reports-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .filter-buttons {
+    justify-content: center;
+  }
+}

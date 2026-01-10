@@ -47,7 +47,7 @@ function HomePage() {
             </motion.button>
             <motion.button
               className="btn-secondary"
-              onClick={() => navigate('/report')}
+              onClick={() => navigate('/reports')}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
             >
