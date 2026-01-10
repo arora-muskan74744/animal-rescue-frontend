@@ -54,12 +54,23 @@ function ReportPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!description.trim() || !name.trim() || !phone.trim()) {
-      setMessage('Please fill description, name, and phone.');
+      setMessage('❌ Please fill description, name, and phone.');
       return;
     }
+
+    // MANDATORY LOCATION CHECK
+    const finalLat = lat != null ? lat : manualLat || null;
+    const finalLng = lng != null ? lng : manualLng || null;
+
+    if (!finalLat || !finalLng) {
+      setMessage('❌ Location is mandatory! Please click "Use my current location" or enter manually.');
+      return;
+    }
+
     if (phone.trim().length < 10) {
-      setMessage('Please enter a valid phone number.');
+      setMessage('❌ Please enter a valid phone number.');
       return;
     }
 
@@ -71,12 +82,9 @@ function ReportPage() {
       formData.append('description', description);
       formData.append('reporter_name', name);
       formData.append('reporter_phone', phone);
+      formData.append('latitude', finalLat);
+      formData.append('longitude', finalLng);
 
-      const finalLat = lat != null ? lat : manualLat || null;
-      const finalLng = lng != null ? lng : manualLng || null;
-
-      if (finalLat != null) formData.append('latitude', finalLat);
-      if (finalLng != null) formData.append('longitude', finalLng);
       if (photo) formData.append('photo', photo);
 
       const res = await fetch(`${API_URL}/api/reports`, {
@@ -90,15 +98,24 @@ function ReportPage() {
       }
 
       const data = await res.json();
-      console.log('Created report:', data);
+      console.log('Report created:', data);
 
       setShowSuccess(true);
       setShowVan(true);
-      setMessage('🎉 Report submitted! Rescue team is on the way!');
+
+      let successMsg = `🎉 ${data.message}`;
+      if (data.assigned_ngo) {
+        successMsg += `\n🏥 Assigned to: ${data.assigned_ngo}`;
+        if (data.distance_km) {
+          successMsg += ` (${data.distance_km} km away)`;
+        }
+      }
+      setMessage(successMsg);
 
       setTimeout(() => setShowVan(false), 3000);
-      setTimeout(() => setShowSuccess(false), 4000);
+      setTimeout(() => setShowSuccess(false), 5000);
 
+      // Reset form
       setDescription('');
       setName('');
       setPhone('');
@@ -110,12 +127,13 @@ function ReportPage() {
       setShowManualLocation(false);
 
     } catch (err) {
-      console.error('Error submitting report:', err);
-      setMessage(`❌ Failed to submit: ${err.message}`);
+      console.error('Error:', err);
+      setMessage(`❌ ${err.message}`);
     } finally {
       setLoading(false);
     }
   };
+
 
   return (
     <div className="report-page">
@@ -132,15 +150,16 @@ function ReportPage() {
         {showVan && (
           <motion.div
             className="rescue-van"
-            initial={{ x: '-100%', y: 0 }}
-            animate={{ x: '110%', y: 0 }}
+            initial={{ x: '-10%' }}
+            animate={{ x: '110%' }}
             exit={{ x: '110%' }}
-            transition={{ duration: 3, ease: 'easeInOut' }}
+            transition={{ duration: 3, ease: 'linear' }}
           >
-            🚐💨
+            🚑💨
           </motion.div>
         )}
       </AnimatePresence>
+
 
       <AnimatePresence>
         {showSuccess && (
@@ -286,7 +305,22 @@ function ReportPage() {
                 )}
               </AnimatePresence>
 
-              {/* Manual Location - Hidden by default */}
+              {/* MANUAL LOCATION TOGGLE BUTTON */}
+              {!showManualLocation && lat == null && (
+                <motion.button
+                  type="button"
+                  onClick={() => setShowManualLocation(true)}
+                  className="manual-location-toggle"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  📝 Or add your location manually
+                </motion.button>
+              )}
+
+              {/* Manual Location Fields */}
               <AnimatePresence>
                 {showManualLocation && (
                   <motion.div
@@ -296,9 +330,24 @@ function ReportPage() {
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <p style={{ color: '#ff6b6b', fontWeight: 600, marginBottom: 10 }}>
-                      📍 Enter location manually:
-                    </p>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                      <p style={{ color: '#667eea', fontWeight: 600, margin: 0 }}>
+                        📍 Enter location manually:
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => setShowManualLocation(false)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          color: '#999',
+                          cursor: 'pointer',
+                          fontSize: '1.2rem'
+                        }}
+                      >
+                        ✕
+                      </button>
+                    </div>
                     <div className="manual-inputs">
                       <input
                         type="text"
@@ -314,12 +363,13 @@ function ReportPage() {
                       />
                     </div>
                     <p style={{ fontSize: '0.85rem', color: '#666', marginTop: 8 }}>
-                      💡 Tip: You can find coordinates by right-clicking on Google Maps
+                      💡 Tip: Right-click on Google Maps → Click on coordinates to copy
                     </p>
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
+
 
             <AnimatePresence>
               {message && (

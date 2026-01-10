@@ -10,30 +10,42 @@ function ReportsPage() {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState('all'); // all, pending, on_the_way, resolved
+  const [filter, setFilter] = useState('all');
 
   const loadReports = async () => {
     setLoading(true);
+    setError('');
     try {
-      const url = filter === 'all' 
-        ? `${API_URL}/api/reports`
-        : `${API_URL}/api/reports?onlyOpen=true`;
-      
+      const url = `${API_URL}/api/reports`;
+
+      console.log('Fetching from:', url);
       const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      
-      let data = await res.json();
-      
-      // Apply client-side filtering
-      if (filter !== 'all' && filter !== 'open') {
-        data = data.filter(r => r.status === filter.toUpperCase());
+
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
       }
-      
+
+      let data = await res.json();
+      console.log('Received data:', data);
+      console.log('Current filter:', filter);
+
+      // Filter logic
+      if (filter === 'PENDING') {
+        data = data.filter(r => r.status === 'PENDING');
+      } else if (filter === 'ON_THE_WAY') {
+        data = data.filter(r => r.status === 'ON_THE_WAY');
+      } else if (filter === 'RESOLVED') {
+        data = data.filter(r => r.status === 'RESOLVED');
+      }
+      // 'all' filter shows everything
+
+      console.log('Filtered data:', data);
       setReports(Array.isArray(data) ? data : []);
       setError('');
     } catch (err) {
       console.error('Error loading reports:', err);
-      setError('Failed to load reports.');
+      setError(`Failed to load reports: ${err.message}`);
+      setReports([]);
     } finally {
       setLoading(false);
     }
@@ -50,16 +62,14 @@ function ReportsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
       });
-      
+
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      
-      setReports((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r))
+
+      setReports(prev =>
+        prev.map(r => r.id === id ? { ...r, status: newStatus } : r)
       );
-      
-      console.log(`Updated report ${id} to ${newStatus}`);
     } catch (err) {
-      console.error('Failed to update status:', err);
+      console.error('Failed to update:', err);
       alert('Failed to update status');
     }
   };
@@ -75,7 +85,7 @@ function ReportsPage() {
         ← Back to Home
       </motion.button>
 
-      <motion.header 
+      <motion.header
         className="reports-header"
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -88,25 +98,25 @@ function ReportsPage() {
       <div className="reports-container">
         <div className="reports-controls">
           <div className="filter-buttons">
-            <button 
+            <button
               className={filter === 'all' ? 'active' : ''}
               onClick={() => setFilter('all')}
             >
               📋 All Reports
             </button>
-            <button 
+            <button
               className={filter === 'PENDING' ? 'active' : ''}
               onClick={() => setFilter('PENDING')}
             >
               ⏳ Pending
             </button>
-            <button 
+            <button
               className={filter === 'ON_THE_WAY' ? 'active' : ''}
               onClick={() => setFilter('ON_THE_WAY')}
             >
               🚗 On the Way
             </button>
-            <button 
+            <button
               className={filter === 'RESOLVED' ? 'active' : ''}
               onClick={() => setFilter('RESOLVED')}
             >
@@ -114,7 +124,7 @@ function ReportsPage() {
             </button>
           </div>
 
-          <motion.button 
+          <motion.button
             className="new-report-btn"
             onClick={() => navigate('/report')}
             whileHover={{ scale: 1.05 }}
@@ -144,8 +154,12 @@ function ReportsPage() {
           <div className="empty-state">
             <p style={{ fontSize: '4rem' }}>📭</p>
             <h2>No reports found</h2>
-            <p>Be the first to report an injured animal!</p>
-            <motion.button 
+            <p>
+              {filter === 'all'
+                ? 'Be the first to report an injured animal!'
+                : `No reports with status: ${filter}`}
+            </p>
+            <motion.button
               onClick={() => navigate('/report')}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
@@ -157,8 +171,8 @@ function ReportsPage() {
           <div className="reports-grid">
             <AnimatePresence>
               {reports.map((r, index) => (
-                <motion.div 
-                  key={r.id} 
+                <motion.div
+                  key={r.id}
                   className="report-card"
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -167,12 +181,10 @@ function ReportsPage() {
                   whileHover={{ y: -5, boxShadow: '0 15px 40px rgba(0,0,0,0.3)' }}
                 >
                   <div className="report-id">Report #{r.id}</div>
-                  
+
                   <p><strong>⏰ Time:</strong> {new Date(r.created_at).toLocaleString()}</p>
                   <p><strong>📝 Description:</strong> {r.description}</p>
-                  <p><strong>👤 Reporter:</strong> {r.reporter_name}</p>
-                  <p><strong>📞 Phone:</strong> {r.reporter_phone}</p>
-                  
+
                   {r.image_path && (
                     <p>
                       <strong>📷 Photo:</strong>{' '}
@@ -181,23 +193,10 @@ function ReportsPage() {
                       </a>
                     </p>
                   )}
-                  
-                  {r.latitude && r.longitude && (
-                    <p>
-                      <strong>📍 Location:</strong>{' '}
-                      <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${r.latitude},${r.longitude}`}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Open in Maps
-                      </a>
-                    </p>
-                  )}
-                  
+
                   <div className="status-badge">
                     <strong>Status:</strong>{' '}
-                    <span className={`status-${r.status.toLowerCase()}`}>
+                    <span className={`status-${r.status?.toLowerCase()}`}>
                       {r.status}
                     </span>
                   </div>
@@ -205,19 +204,17 @@ function ReportsPage() {
                   <div className="action-buttons">
                     {r.status === 'PENDING' && (
                       <>
-                        <motion.button 
-                          onClick={() => updateStatus(r.id, 'ON_THE_WAY')} 
+                        <motion.button
+                          onClick={() => updateStatus(r.id, 'ON_THE_WAY')}
                           className="btn-secondary"
                           whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
                         >
                           🚗 On the way
                         </motion.button>
-                        <motion.button 
-                          onClick={() => updateStatus(r.id, 'RESOLVED')} 
+                        <motion.button
+                          onClick={() => updateStatus(r.id, 'RESOLVED')}
                           className="btn-success"
                           whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
                         >
                           ✅ Resolved
                         </motion.button>
@@ -225,11 +222,10 @@ function ReportsPage() {
                     )}
 
                     {r.status === 'ON_THE_WAY' && (
-                      <motion.button 
-                        onClick={() => updateStatus(r.id, 'RESOLVED')} 
+                      <motion.button
+                        onClick={() => updateStatus(r.id, 'RESOLVED')}
                         className="btn-success"
                         whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
                       >
                         ✅ Mark Resolved
                       </motion.button>
