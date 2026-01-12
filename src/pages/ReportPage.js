@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
+import './ReportPage.css';
+
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -100,8 +102,9 @@ function ReportPage() {
       const data = await res.json();
       console.log('Report created:', data);
 
+      // ✅ SHOW SUCCESS AND AMBULANCE
       setShowSuccess(true);
-      setShowVan(true);
+      setShowVan(true);  // ← THIS TRIGGERS AMBULANCE
 
       let successMsg = `🎉 ${data.message}`;
       if (data.assigned_ngo) {
@@ -112,19 +115,24 @@ function ReportPage() {
       }
       setMessage(successMsg);
 
-      setTimeout(() => setShowVan(false), 3000);
-      setTimeout(() => setShowSuccess(false), 5000);
+      // Keep ambulance visible for 10 seconds
+      setTimeout(() => {
+        setShowVan(false);
+        setShowSuccess(false);
+      }, 10000);
 
-      // Reset form
-      setDescription('');
-      setName('');
-      setPhone('');
-      setPhoto(null);
-      setLat(null);
-      setLng(null);
-      setManualLat('');
-      setManualLng('');
-      setShowManualLocation(false);
+      // Reset form after animation
+      setTimeout(() => {
+        setDescription('');
+        setName('');
+        setPhone('');
+        setPhoto(null);
+        setLat(null);
+        setLng(null);
+        setManualLat('');
+        setManualLng('');
+        setShowManualLocation(false);
+      }, 11000);
 
     } catch (err) {
       console.error('Error:', err);
@@ -146,20 +154,158 @@ function ReportPage() {
         ← Back to Home
       </motion.button>
 
+      {/* ========== AMBULANCE ANIMATION ========== */}
       <AnimatePresence>
         {showVan && (
-          <motion.div
-            className="rescue-van"
-            initial={{ x: '-10%' }}
-            animate={{ x: '110%' }}
-            exit={{ x: '110%' }}
-            transition={{ duration: 3, ease: 'linear' }}
-          >
-            🚑💨
-          </motion.div>
+          <>
+            {/* Road */}
+            <motion.div
+              className="road"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <div className="road-line"></div>
+              <div className="road-line"></div>
+              <div className="road-line"></div>
+            </motion.div>
+
+            {/* Ambulance - comes from right, stops at center */}
+            <motion.div
+              className="ambulance"
+              initial={{ x: '150%', scale: 0.8 }}
+              animate={{
+                x: '-50%',
+                scale: 1,
+                transition: {
+                  duration: 3,
+                  ease: [0.43, 0.13, 0.23, 0.96]
+                }
+              }}
+            >
+              <div className="ambulance-body">
+                <div className="ambulance-top">
+                  <motion.div
+                    className="siren"
+                    animate={{
+                      backgroundColor: ['#ff0000', '#0000ff', '#ff0000'],
+                      boxShadow: [
+                        '0 0 20px #ff0000',
+                        '0 0 20px #0000ff',
+                        '0 0 20px #ff0000'
+                      ]
+                    }}
+                    transition={{
+                      duration: 0.5,
+                      repeat: Infinity,
+                      ease: 'linear'
+                    }}
+                  />
+                </div>
+
+                <div className="ambulance-main">
+                  <span className="ambulance-icon">🚑</span>
+                  <span className="red-cross">+</span>
+                </div>
+
+                <div className="wheels">
+                  <motion.div
+                    className="wheel"
+                    animate={{ rotate: 360 }}
+                    transition={{
+                      duration: 0.4,
+                      repeat: Infinity,
+                      ease: 'linear'
+                    }}
+                  />
+                  <motion.div
+                    className="wheel"
+                    animate={{ rotate: 360 }}
+                    transition={{
+                      duration: 0.4,
+                      repeat: Infinity,
+                      ease: 'linear'
+                    }}
+                  />
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Message: "On The Way" - shows immediately */}
+            <motion.div
+              className="rescue-status"
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+            >
+              <div className="status-content ontheway">
+                <motion.div
+                  animate={{
+                    scale: [1, 1.05, 1],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: 'easeInOut'
+                  }}
+                >
+                  <h3>🚨 Rescue Team On The Way!</h3>
+                  <p>Ambulance approaching...</p>
+                  <div className="status-dots">
+                    <motion.span
+                      animate={{ opacity: [0, 1, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity, delay: 0 }}
+                    >●</motion.span>
+                    <motion.span
+                      animate={{ opacity: [0, 1, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
+                    >●</motion.span>
+                    <motion.span
+                      animate={{ opacity: [0, 1, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity, delay: 0.6 }}
+                    >●</motion.span>
+                  </div>
+                </motion.div>
+              </div>
+            </motion.div>
+
+            {/* Message: "Arrived" - shows after 3 seconds (when ambulance stops) */}
+            <motion.div
+              className="rescue-status"
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 3.2 }}
+            >
+              <div className="status-content arrived">
+                <motion.div
+                  animate={{
+                    scale: [1, 1.08, 1],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Infinity,
+                    ease: 'easeInOut'
+                  }}
+                >
+                  <h3>✅ Rescue Team Arrived!</h3>
+                  <p>Animal is being rescued now...</p>
+                  <div className="progress-bar">
+                    <motion.div
+                      className="progress-fill"
+                      initial={{ width: 0 }}
+                      animate={{ width: '100%' }}
+                      transition={{ duration: 6, delay: 0.5 }}
+                    />
+                  </div>
+                  <p style={{ fontSize: '0.9rem', marginTop: '10px', color: '#666' }}>
+                    🕒 Estimated rescue time: 5-10 minutes
+                  </p>
+                </motion.div>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
-
 
       <AnimatePresence>
         {showSuccess && (
