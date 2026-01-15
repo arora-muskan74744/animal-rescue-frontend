@@ -171,6 +171,7 @@ function ReportPage() {
             </motion.div>
 
             {/* Ambulance - comes from right, stops at center */}
+            {/* Ambulance - responsive animation */}
             <motion.div
               className="ambulance"
               initial={{ x: '150%', scale: 0.8 }}
@@ -178,11 +179,12 @@ function ReportPage() {
                 x: '-50%',
                 scale: 1,
                 transition: {
-                  duration: 3,
+                  duration: window.innerWidth < 768 ? 2.5 : 3,  // Faster on mobile
                   ease: [0.43, 0.13, 0.23, 0.96]
                 }
               }}
             >
+
               <div className="ambulance-body">
                 <div className="ambulance-top">
                   <motion.div
@@ -232,12 +234,16 @@ function ReportPage() {
             </motion.div>
 
             {/* Message: "On The Way" - shows immediately */}
+            {/* Message: "Arrived" - adjust delay for mobile */}
             <motion.div
               className="rescue-status"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{
+                delay: window.innerWidth < 768 ? 2.7 : 3.2  // Earlier on mobile
+              }}
             >
+
               <div className="status-content ontheway">
                 <motion.div
                   animate={{
@@ -287,8 +293,9 @@ function ReportPage() {
                     ease: 'easeInOut'
                   }}
                 >
-                  <h3>✅ Rescue Team Arrived!</h3>
-                  <p>Animal is being rescued now...</p>
+                  <h3>✅ Rescue Team is arriving soon!</h3>
+                  <p>Animal will be rescued now...</p>
+                  <p>Thank you for taking a step towards humanity</p>
                   <div className="progress-bar">
                     <motion.div
                       className="progress-fill"
