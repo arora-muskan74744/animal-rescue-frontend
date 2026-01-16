@@ -1,9 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
 import './ReportPage.css';
-
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -21,35 +20,76 @@ function ReportPage() {
   const [loading, setLoading] = useState(false);
   const [manualLat, setManualLat] = useState('');
   const [manualLng, setManualLng] = useState('');
+  const [locationName, setLocationName] = useState('');
   const [showVan, setShowVan] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
-  const [showManualLocation, setShowManualLocation] = useState(false); // ← NEW STATE
+  const [showManualLocation, setShowManualLocation] = useState(false);
 
-  const handleGetLocation = () => {
-    setLocationError('');
-    setShowManualLocation(false); // ← Hide manual location when trying auto
-
+  const getLocation = () => {
     if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by this browser.');
-      setShowManualLocation(true); // ← Show manual entry
+      setMessage('❌ Geolocation is not supported by your browser.');
       return;
     }
 
+    setLoading(true);
+    setMessage('📍 Getting your location...');
+
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLat(position.coords.latitude);
-        setLng(position.coords.longitude);
-        setShowManualLocation(false); // ← Hide manual entry on success
+      async (position) => {
+        const latitude = position.coords.latitude;
+        const longitude = position.coords.longitude;
+
+        setLat(latitude);
+        setLng(longitude);
+
+        // Reverse Geocode to get place name
+        try {
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
+            {
+              headers: {
+                'Accept-Language': 'en'
+              }
+            }
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+
+            // Build a nice address string
+            const address = data.address;
+            let placeName = '';
+
+            if (address.road) placeName += address.road;
+            if (address.suburb) placeName += (placeName ? ', ' : '') + address.suburb;
+            if (address.city) placeName += (placeName ? ', ' : '') + address.city;
+            else if (address.town) placeName += (placeName ? ', ' : '') + address.town;
+            else if (address.village) placeName += (placeName ? ', ' : '') + address.village;
+            if (address.state) placeName += (placeName ? ', ' : '') + address.state;
+            if (address.country) placeName += (placeName ? ', ' : '') + address.country;
+
+            setLocationName(placeName || data.display_name);
+            setMessage(`✅ Location found: ${placeName || data.display_name}`);
+          } else {
+            setLocationName(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+            setMessage(`✅ Location found: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+          }
+        } catch (error) {
+          console.error('Geocoding error:', error);
+          setLocationName(`${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+          setMessage(`✅ Location found: ${latitude.toFixed(6)}, ${longitude.toFixed(6)}`);
+        }
+
+        setLoading(false);
       },
       (error) => {
-        console.error('Geolocation error:', error);
-        setLocationError('Could not get location automatically. Please enter manually below.');
-        setShowManualLocation(true); // ← Show manual entry on failure
+        setLoading(false);
+        setMessage(`❌ Error: ${error.message}`);
       },
       {
-        enableHighAccuracy: false,
-        timeout: 20000,
-        maximumAge: 60000
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
       }
     );
   };
@@ -86,6 +126,7 @@ function ReportPage() {
       formData.append('reporter_phone', phone);
       formData.append('latitude', finalLat);
       formData.append('longitude', finalLng);
+      formData.append('location_name', locationName);
 
       if (photo) formData.append('photo', photo);
 
@@ -104,7 +145,7 @@ function ReportPage() {
 
       // ✅ SHOW SUCCESS AND AMBULANCE
       setShowSuccess(true);
-      setShowVan(true);  // ← THIS TRIGGERS AMBULANCE
+      setShowVan(true);
 
       let successMsg = `🎉 ${data.message}`;
       if (data.assigned_ngo) {
@@ -129,9 +170,11 @@ function ReportPage() {
         setPhoto(null);
         setLat(null);
         setLng(null);
+        setLocationName('');
         setManualLat('');
         setManualLng('');
         setShowManualLocation(false);
+        setMessage('');
       }, 11000);
 
     } catch (err) {
@@ -141,7 +184,6 @@ function ReportPage() {
       setLoading(false);
     }
   };
-
 
   return (
     <div className="report-page">
@@ -170,8 +212,7 @@ function ReportPage() {
               <div className="road-line"></div>
             </motion.div>
 
-            {/* Ambulance - comes from right, stops at center */}
-            {/* Ambulance - responsive animation */}
+            {/* Ambulance */}
             <motion.div
               className="ambulance"
               initial={{ x: '150%', scale: 0.8 }}
@@ -179,12 +220,11 @@ function ReportPage() {
                 x: '-50%',
                 scale: 1,
                 transition: {
-                  duration: window.innerWidth < 768 ? 2.5 : 3,  // Faster on mobile
+                  duration: window.innerWidth < 768 ? 2.5 : 3,
                   ease: [0.43, 0.13, 0.23, 0.96]
                 }
               }}
             >
-
               <div className="ambulance-body">
                 <div className="ambulance-top">
                   <motion.div
@@ -233,17 +273,13 @@ function ReportPage() {
               </div>
             </motion.div>
 
-            {/* Message: "On The Way" - shows immediately */}
-            {/* Message: "Arrived" - adjust delay for mobile */}
+            {/* Message: "On The Way" */}
             <motion.div
               className="rescue-status"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{
-                delay: window.innerWidth < 768 ? 2.7 : 3.2  // Earlier on mobile
-              }}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
             >
-
               <div className="status-content ontheway">
                 <motion.div
                   animate={{
@@ -275,12 +311,14 @@ function ReportPage() {
               </div>
             </motion.div>
 
-            {/* Message: "Arrived" - shows after 3 seconds (when ambulance stops) */}
+            {/* Message: "Arrived" */}
             <motion.div
               className="rescue-status"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 3.2 }}
+              transition={{
+                delay: window.innerWidth < 768 ? 2.7 : 3.2
+              }}
             >
               <div className="status-content arrived">
                 <motion.div
@@ -314,6 +352,7 @@ function ReportPage() {
         )}
       </AnimatePresence>
 
+      {/* Confetti */}
       <AnimatePresence>
         {showSuccess && (
           <motion.div
@@ -421,10 +460,10 @@ function ReportPage() {
             </div>
 
             <div className="form-group">
-              <label>Location</label>
+              <label>Location *</label>
               <motion.button
                 type="button"
-                onClick={handleGetLocation}
+                onClick={getLocation}
                 className="location-btn"
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
@@ -432,98 +471,75 @@ function ReportPage() {
                 📍 Use my current location
               </motion.button>
 
+              {/* Location Success Display */}
               <AnimatePresence>
                 {lat != null && lng != null && (
                   <motion.div
-                    className="location-display"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
+                    className="location-success"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
                   >
-                    ✅ Location captured: {lat.toFixed(5)}, {lng.toFixed(5)}
+                    <strong>📍 {locationName || `${lat.toFixed(6)}, ${lng.toFixed(6)}`}</strong>
+                    <br />
+                    <small style={{ fontSize: '0.85rem', opacity: 0.8 }}>
+                      Coordinates: {lat.toFixed(6)}, {lng.toFixed(6)}
+                    </small>
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <AnimatePresence>
-                {locationError && (
-                  <motion.div
-                    className="error-message"
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                  >
-                    {locationError}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* MANUAL LOCATION TOGGLE BUTTON */}
-              {!showManualLocation && lat == null && (
-                <motion.button
-                  type="button"
-                  onClick={() => setShowManualLocation(true)}
-                  className="manual-location-toggle"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+              {/* Manual Location Toggle */}
+              {!lat && !lng && (
+                <span
+                  className="manual-location-link"
+                  onClick={() => setShowManualLocation(!showManualLocation)}
                 >
-                  📝 Or add your location manually
-                </motion.button>
+                  Or enter coordinates manually
+                </span>
               )}
 
               {/* Manual Location Fields */}
               <AnimatePresence>
                 {showManualLocation && (
                   <motion.div
-                    className="manual-location"
+                    className="manual-location-fields"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
                     exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.3 }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                      <p style={{ color: '#667eea', fontWeight: 600, margin: 0 }}>
-                        📍 Enter location manually:
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setShowManualLocation(false)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#999',
-                          cursor: 'pointer',
-                          fontSize: '1.2rem'
-                        }}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                    <div className="manual-inputs">
-                      <input
-                        type="text"
-                        placeholder="Latitude (e.g., 29.43055)"
-                        value={manualLat}
-                        onChange={(e) => setManualLat(e.target.value)}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Longitude (e.g., 74.92088)"
-                        value={manualLng}
-                        onChange={(e) => setManualLng(e.target.value)}
-                      />
-                    </div>
-                    <p style={{ fontSize: '0.85rem', color: '#666', marginTop: 8 }}>
-                      💡 Tip: Right-click on Google Maps → Click on coordinates to copy
-                    </p>
+                    <input
+                      type="number"
+                      step="any"
+                      placeholder="Enter latitude (e.g., 28.6139)"
+                      value={manualLat}
+                      onChange={(e) => setManualLat(e.target.value)}
+                    />
+                    <input
+                      type="number"
+                      step="any"
+                      placeholder="Enter longitude (e.g., 77.2090)"
+                      value={manualLng}
+                      onChange={(e) => setManualLng(e.target.value)}
+                    />
+
+                    {manualLat && manualLng && (
+                      <div style={{
+                        marginTop: '10px',
+                        padding: '10px',
+                        background: '#e8f5e9',
+                        borderRadius: '8px',
+                        fontSize: '0.95rem'
+                      }}>
+                        📍 <strong>{manualLat}, {manualLng}</strong>
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
             </div>
 
-
+            {/* Messages */}
             <AnimatePresence>
               {message && (
                 <motion.div
@@ -537,14 +553,13 @@ function ReportPage() {
               )}
             </AnimatePresence>
 
+            {/* Submit Button */}
             <motion.button
               type="submit"
               className="submit-btn"
               disabled={loading}
               whileHover={{ scale: loading ? 1 : 1.03 }}
               whileTap={{ scale: loading ? 1 : 0.97 }}
-              animate={loading ? { scale: [1, 1.05, 1] } : {}}
-              transition={{ repeat: loading ? Infinity : 0, duration: 0.8 }}
             >
               {loading ? '📡 Submitting...' : '✉️ Submit Report'}
             </motion.button>
