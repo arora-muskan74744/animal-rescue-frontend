@@ -15,7 +15,6 @@ function ReportPage() {
   const [photo, setPhoto] = useState(null);
   const [lat, setLat] = useState(null);
   const [lng, setLng] = useState(null);
-  const [locationError, setLocationError] = useState('');
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [manualLat, setManualLat] = useState('');
@@ -42,7 +41,6 @@ function ReportPage() {
         setLat(latitude);
         setLng(longitude);
 
-        // Reverse Geocode to get place name
         try {
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&addressdetails=1`,
@@ -55,8 +53,6 @@ function ReportPage() {
 
           if (response.ok) {
             const data = await response.json();
-
-            // Build a nice address string
             const address = data.address;
             let placeName = '';
 
@@ -102,7 +98,6 @@ function ReportPage() {
       return;
     }
 
-    // MANDATORY LOCATION CHECK
     const finalLat = lat != null ? lat : manualLat || null;
     const finalLng = lng != null ? lng : manualLng || null;
 
@@ -143,7 +138,6 @@ function ReportPage() {
       const data = await res.json();
       console.log('Report created:', data);
 
-      // ✅ SHOW SUCCESS AND AMBULANCE
       setShowSuccess(true);
       setShowVan(true);
 
@@ -156,13 +150,11 @@ function ReportPage() {
       }
       setMessage(successMsg);
 
-      // Keep ambulance visible for 10 seconds
       setTimeout(() => {
         setShowVan(false);
         setShowSuccess(false);
       }, 10000);
 
-      // Reset form after animation
       setTimeout(() => {
         setDescription('');
         setName('');
@@ -273,17 +265,23 @@ function ReportPage() {
               </div>
             </motion.div>
 
-            {/* Message: "On The Way" */}
+            {/* CENTER MESSAGE - Shows immediately with ambulance */}
             <motion.div
-              className="rescue-status"
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 }}
+              className="rescue-message-center"
+              initial={{ opacity: 0, scale: 0.5, y: 50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.5 }}
+              transition={{
+                delay: 0.5,
+                duration: 0.6,
+                type: 'spring',
+                bounce: 0.4
+              }}
             >
-              <div className="status-content ontheway">
+              <div className="message-content">
                 <motion.div
                   animate={{
-                    scale: [1, 1.05, 1],
+                    scale: [1, 1.03, 1],
                   }}
                   transition={{
                     duration: 2,
@@ -291,60 +289,40 @@ function ReportPage() {
                     ease: 'easeInOut'
                   }}
                 >
-                  <h3>🚨 Rescue Team On The Way!</h3>
-                  <p>Ambulance approaching...</p>
-                  <div className="status-dots">
-                    <motion.span
-                      animate={{ opacity: [0, 1, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity, delay: 0 }}
-                    >●</motion.span>
-                    <motion.span
-                      animate={{ opacity: [0, 1, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
-                    >●</motion.span>
-                    <motion.span
-                      animate={{ opacity: [0, 1, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity, delay: 0.6 }}
-                    >●</motion.span>
-                  </div>
-                </motion.div>
-              </div>
-            </motion.div>
+                  <div className="message-icon">🚨</div>
+                  <h2>Rescue Team is On The Way!</h2>
+                  <p className="message-subtitle">Approaching you soon...</p>
 
-            {/* Message: "Arrived" */}
-            <motion.div
-              className="rescue-status"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{
-                delay: window.innerWidth < 768 ? 2.7 : 3.2
-              }}
-            >
-              <div className="status-content arrived">
-                <motion.div
-                  animate={{
-                    scale: [1, 1.08, 1],
-                  }}
-                  transition={{
-                    duration: 1.5,
-                    repeat: Infinity,
-                    ease: 'easeInOut'
-                  }}
-                >
-                  <h3>✅ Rescue Team is arriving soon!</h3>
-                  <p>Animal will be rescued now...</p>
-                  <p>Thank you for taking a step towards humanity</p>
+                  <div className="thank-you-message">
+                    <span className="heart-icon">🙏</span>
+                    <p>Thank you for taking a step towards Humanity!</p>
+                  </div>
+
                   <div className="progress-bar">
                     <motion.div
                       className="progress-fill"
                       initial={{ width: 0 }}
                       animate={{ width: '100%' }}
-                      transition={{ duration: 6, delay: 0.5 }}
+                      transition={{ duration: 8, delay: 1 }}
                     />
                   </div>
-                  <p style={{ fontSize: '0.9rem', marginTop: '10px', color: '#666' }}>
-                    🕒 Estimated rescue time: 5-10 minutes
-                  </p>
+
+                  <p className="eta-text">🕒 Estimated arrival: 5-10 minutes</p>
+
+                  <div className="pulse-dots">
+                    <motion.span
+                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      transition={{ duration: 1.5, repeat: Infinity, delay: 0 }}
+                    >●</motion.span>
+                    <motion.span
+                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      transition={{ duration: 1.5, repeat: Infinity, delay: 0.3 }}
+                    >●</motion.span>
+                    <motion.span
+                      animate={{ opacity: [0.3, 1, 0.3] }}
+                      transition={{ duration: 1.5, repeat: Infinity, delay: 0.6 }}
+                    >●</motion.span>
+                  </div>
                 </motion.div>
               </div>
             </motion.div>
@@ -361,7 +339,7 @@ function ReportPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {[...Array(20)].map((_, i) => (
+            {[...Array(30)].map((_, i) => (
               <motion.div
                 key={i}
                 className="confetti"
@@ -380,7 +358,7 @@ function ReportPage() {
                 }}
                 style={{
                   left: `${Math.random() * 100}%`,
-                  backgroundColor: ['#667eea', '#764ba2', '#4CAF50', '#ff6b6b'][Math.floor(Math.random() * 4)]
+                  backgroundColor: ['#667eea', '#764ba2', '#4CAF50', '#ff6b6b', '#ffd700'][Math.floor(Math.random() * 5)]
                 }}
               />
             ))}
@@ -471,7 +449,6 @@ function ReportPage() {
                 📍 Use my current location
               </motion.button>
 
-              {/* Location Success Display */}
               <AnimatePresence>
                 {lat != null && lng != null && (
                   <motion.div
@@ -489,7 +466,6 @@ function ReportPage() {
                 )}
               </AnimatePresence>
 
-              {/* Manual Location Toggle */}
               {!lat && !lng && (
                 <span
                   className="manual-location-link"
@@ -499,7 +475,6 @@ function ReportPage() {
                 </span>
               )}
 
-              {/* Manual Location Fields */}
               <AnimatePresence>
                 {showManualLocation && (
                   <motion.div
@@ -539,7 +514,6 @@ function ReportPage() {
               </AnimatePresence>
             </div>
 
-            {/* Messages */}
             <AnimatePresence>
               {message && (
                 <motion.div
@@ -553,7 +527,6 @@ function ReportPage() {
               )}
             </AnimatePresence>
 
-            {/* Submit Button */}
             <motion.button
               type="submit"
               className="submit-btn"

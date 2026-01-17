@@ -539,105 +539,76 @@
 }
 
 /* Arrived Style */
-.status-content.arrived {
-  border-color: #27ae60;
-  background: linear-gradient(135deg, #ffffff 0%, #f0fff4 100%);
+/* ==================== CENTER MESSAGE BOX ==================== */
+.rescue-status-center {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
+  width: 90%;
+  max-width: 500px;
 }
 
-.status-content h3 {
-  color: #667eea;
-  font-size: 2rem;
-  margin: 0 0 15px 0;
-  font-weight: 800;
+.status-content-center {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 30px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+  border: 3px solid rgba(255, 255, 255, 0.3);
 }
 
-.status-content.ontheway h3 {
-  color: #f39c12;
+.status-content-center.arrived {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
 }
 
-.status-content.arrived h3 {
-  color: #27ae60;
+.status-content-center h3 {
+  font-size: 1.8rem;
+  margin-bottom: 15px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.status-content p {
-  color: #555;
-  font-size: 1.3rem;
-  margin: 0 0 20px 0;
-  font-weight: 600;
+.status-content-center p {
+  font-size: 1.1rem;
+  margin: 10px 0;
+  opacity: 0.95;
 }
 
-.status-dots {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  font-size: 1.5rem;
-}
-
-.status-dots span {
-  color: #667eea;
-  font-size: 2rem;
-}
-
-.status-content.ontheway .status-dots span {
-  color: #f39c12;
-}
-
-/* Progress Bar */
-.progress-bar {
-  width: 100%;
+/* Progress Bar for Center Box */
+.status-content-center .progress-bar {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
   height: 12px;
-  background: #e0e0e0;
-  border-radius: 10px;
   overflow: hidden;
-  margin: 20px 0 10px;
+  margin: 20px 0;
 }
 
-.progress-fill {
+.status-content-center .progress-fill {
+  background: white;
   height: 100%;
-  background: linear-gradient(90deg, #27ae60 0%, #2ecc71 100%);
   border-radius: 10px;
-  box-shadow: 0 0 10px rgba(39, 174, 96, 0.5);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
 }
 
-
-/* Responsive */
+/* Responsive for Mobile */
 @media (max-width: 768px) {
-  .ambulance-body {
-    width: 100px;
-    height: 65px;
+  .rescue-status-center {
+    width: 95%;
+    max-width: none;
   }
 
-  .ambulance-main {
-    height: 50px;
+  .status-content-center {
+    padding: 20px;
   }
 
-  .ambulance-icon {
-    font-size: 2rem;
+  .status-content-center h3 {
+    font-size: 1.4rem;
   }
 
-  .red-cross {
-    font-size: 1.8rem;
-  }
-
-  .wheel {
-    width: 18px;
-    height: 18px;
-  }
-
-  .status-content {
-    padding: 20px 25px;
-  }
-
-  .status-content h3 {
-    font-size: 1.5rem;
-  }
-
-  .status-content p {
-    font-size: 1.1rem;
-  }
-
-  .road {
-    height: 70px;
+  .status-content-center p {
+    font-size: 1rem;
   }
 }
 
@@ -698,4 +669,340 @@
   .report-form {
     padding: 25px 20px;
   }
+}
+
+/* Location Success Display */
+.location-success {
+  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+  padding: 20px;
+  border-radius: 15px;
+  margin-top: 15px;
+  border: 2px solid #28a745;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 4px 15px rgba(40, 167, 69, 0.2);
+}
+
+.location-icon {
+  font-size: 2.5rem;
+  flex-shrink: 0;
+}
+
+.location-details {
+  flex: 1;
+}
+
+.place-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #155724;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.coordinates {
+  font-size: 0.9rem;
+  color: #155724;
+  opacity: 0.8;
+  font-family: 'Courier New', monospace;
+}
+
+/* Loading state for location button */
+.location-btn:disabled {
+  background: #95a5a6;
+  cursor: not-allowed;
+  transform: none;
+  opacity: 0.7;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .location-success {
+    flex-direction: column;
+    text-align: center;
+    padding: 15px;
+  }
+
+  .location-icon {
+    font-size: 2rem;
+  }
+
+  .place-name {
+    font-size: 1.1rem;
+  }
+
+  .coordinates {
+    font-size: 0.85rem;
+  }
+}
+
+/* ==================== CENTER MESSAGE BOX ==================== */
+/* ==================== CENTER MESSAGE BOX ==================== */
+.rescue-message-center {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) !important;
+  z-index: 1001;
+  width: 90%;
+  max-width: 550px;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.message-content {
+  background: linear-gradient(135deg, #FF6B35 0%, #F7931E 50%, #4CAF50 100%);
+  color: white;
+  padding: 40px 35px;
+  border-radius: 25px;
+  text-align: center;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.5);
+  border: 4px solid rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(10px);
+  position: relative;
+}
+
+.message-icon {
+  font-size: 4rem;
+  margin-bottom: 15px;
+  animation: pulse 2s infinite;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.15);
+  }
+}
+
+.message-content h2 {
+  font-size: 2rem;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 6px rgba(0, 0, 0, 0.4);
+  font-weight: 700;
+  color: #fff;
+}
+
+.message-subtitle {
+  font-size: 1.2rem;
+  opacity: 0.95;
+  margin-bottom: 25px;
+  color: #fff;
+}
+
+.thank-you-message {
+  background: rgba(255, 255, 255, 0.25);
+  padding: 20px;
+  border-radius: 15px;
+  margin: 20px 0;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+
+.heart-icon {
+  font-size: 2.5rem;
+  display: block;
+  margin-bottom: 10px;
+  animation: heartbeat 1.5s infinite;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes heartbeat {
+
+  0%,
+  100% {
+    transform: scale(1);
+  }
+
+  25% {
+    transform: scale(1.2);
+  }
+
+  50% {
+    transform: scale(1);
+  }
+}
+
+.thank-you-message p {
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+  color: #fff;
+}
+
+.progress-bar {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 15px;
+  height: 14px;
+  overflow: hidden;
+  margin: 25px 0 15px;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, #fff 0%, #FFD700 50%, #fff 100%);
+  height: 100%;
+  border-radius: 15px;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.8);
+}
+
+.eta-text {
+  font-size: 1rem;
+  opacity: 0.95;
+  margin: 15px 0;
+  color: #fff;
+}
+
+.pulse-dots {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.pulse-dots span {
+  font-size: 2rem;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+/* Responsive - Tablet */
+@media (max-width: 768px) {
+  .rescue-message-center {
+    width: 92%;
+    max-width: none;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  .message-content {
+    padding: 30px 25px;
+  }
+
+  .message-icon {
+    font-size: 3.5rem;
+  }
+
+  .message-content h2 {
+    font-size: 1.6rem;
+  }
+
+  .message-subtitle {
+    font-size: 1.1rem;
+  }
+
+  .thank-you-message p {
+    font-size: 1.15rem;
+  }
+
+  .heart-icon {
+    font-size: 2rem;
+  }
+}
+
+/* Responsive - Mobile */
+@media (max-width: 480px) {
+  .rescue-message-center {
+    width: 95%;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  .message-content {
+    padding: 25px 20px;
+    border-radius: 20px;
+  }
+
+  .message-icon {
+    font-size: 3rem;
+    margin-bottom: 12px;
+  }
+
+  .message-content h2 {
+    font-size: 1.4rem;
+    margin-bottom: 8px;
+  }
+
+  .message-subtitle {
+    font-size: 1rem;
+    margin-bottom: 18px;
+  }
+
+  .thank-you-message {
+    padding: 15px;
+    margin: 15px 0;
+  }
+
+  .heart-icon {
+    font-size: 1.8rem;
+    margin-bottom: 8px;
+  }
+
+  .thank-you-message p {
+    font-size: 1.05rem;
+  }
+
+  .progress-bar {
+    height: 12px;
+    margin: 18px 0 12px;
+  }
+
+  .eta-text {
+    font-size: 0.9rem;
+    margin: 12px 0;
+  }
+
+  .pulse-dots {
+    gap: 10px;
+    margin-top: 15px;
+  }
+
+  .pulse-dots span {
+    font-size: 1.5rem;
+  }
+}
+
+/* Extra small devices */
+@media (max-width: 360px) {
+  .rescue-message-center {
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+  }
+
+  .message-content {
+    padding: 20px 15px;
+  }
+
+  .message-content h2 {
+    font-size: 1.2rem;
+  }
+
+  .message-subtitle {
+    font-size: 0.95rem;
+  }
+
+  .thank-you-message p {
+    font-size: 1rem;
+  }
+
+  .heart-icon {
+    font-size: 1.6rem;
+  }
+}
+
+/* Confetti styling */
+.confetti {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
 }
