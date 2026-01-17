@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import '../App.css';
 import './ReportPage.css';
+import ChatBot from '../components/ChatBot';
+
 
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -539,6 +541,8 @@ function ReportPage() {
           </form>
         </motion.section>
       </div>
+      {/* AI Chatbot */}
+      <ChatBot />
     </div>
   );
 }
